@@ -34,7 +34,7 @@ module.exports = function (app) {
         req.body;
 
       if (!issue_title || !issue_text || !created_by) {
-        res.status(200).send({ error: 'required field(s) missing' });
+        return res.status(200).send({ error: 'required field(s) missing' });
       }
 
       const { project } = req.params;
@@ -79,7 +79,7 @@ module.exports = function (app) {
       const Schema = mongoose.model('Issue', IssueSchema, collection);
 
       if (!_id) {
-        res.status(200).send({ error: 'missing _id' });
+        return res.status(200).send({ error: 'missing _id' });
       }
 
       if (
@@ -89,7 +89,9 @@ module.exports = function (app) {
         !assigned_to &&
         !status_text
       ) {
-        res.status(200).send({ error: 'no update field(s) sent', _id: _id });
+        return res
+          .status(200)
+          .send({ error: 'no update field(s) sent', _id: _id });
       }
 
       Schema.findById({
@@ -123,7 +125,7 @@ module.exports = function (app) {
       const Schema = mongoose.model('Issue', IssueSchema, collection);
 
       if (!_id) {
-        res.status(200).send({ error: 'missing _id' });
+        return res.status(200).send({ error: 'missing _id' });
       }
 
       Schema.findById({
