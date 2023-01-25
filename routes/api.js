@@ -78,30 +78,65 @@ module.exports = function (app) {
       const collection = project ? project : 'apitest';
       const Schema = mongoose.model('Issue', IssueSchema, collection);
 
+      if (!_id) {
+        res.status(200).send({ error: 'missing _id' });
+      }
+
+      if (
+        !issue_title &&
+        !issue_text &&
+        !created_by &&
+        !assigned_to &&
+        !status_text
+      ) {
+        res.status(200).send({ error: 'no update field(s) sent', _id: _id });
+      }
+
       Schema.findById({
         _id: _id,
-      }).then((doc) => {
-        doc.issue_title = issue_title || doc.issue_title;
-        doc.issue_text = issue_text || doc.issue_text;
-        doc.created_by = created_by || doc.created_by;
-        doc.assigned_to = assigned_to || doc.assigned_to;
-        doc.status_text = status_text || doc.status_;
-        doc.open = open || doc.open;
-        doc.updated_on = new Date().toISOString();
+      })
+        .then((doc) => {
+          doc.issue_title = issue_title || doc.issue_title;
+          doc.issue_text = issue_text || doc.issue_text;
+          doc.created_by = created_by || doc.created_by;
+          doc.assigned_to = assigned_to || doc.assigned_to;
+          doc.status_text = status_text || doc.status_;
+          doc.open = open || doc.open;
+          doc.updated_on = new Date().toISOString();
 
-        doc
-          .save()
-          .then((docUpdated) => {
-            res.status(200).send({ result: 'successfully updated', _id: _id });
-          })
-          .catch((err) =>
-            res.status(400).json({ error: 'Error updating issue' })
-          );
-      });
+          doc.save().then((docUpdated) => {
+            res.status(200).send({
+              result: 'successfully updated',
+              _id: docUpdated._id,
+            });
+          });
+        })
+        .catch((err) => {
+          res.status(200).send({ error: 'could not update', _id: _id });
+        });
     })
 
-    .delete(function (req, res) {
-      let project = req.params.project;
+    .delete((req, res) => {
+      const { _id } = req.body;
+      const { project } = req.params;
+      const collection = project ? project : 'apitest';
+      const Schema = mongoose.model('Issue', IssueSchema, collection);
+
+      if (!_id) {
+        res.status(200).send({ error: 'missing _id' });
+      }
+
+      Schema.findById({
+        _id: _id,
+      })
+        .then((doc) => {
+          doc.remove().then((docRemoved) => {
+            res.status(200).send({ result: 'successfully deleted', _id: _id });
+          });
+        })
+        .catch((err) =>
+          res.status(200).send({ error: 'could not delete', _id: _id })
+        );
     });
 
   // 404 Not Found Middleware
